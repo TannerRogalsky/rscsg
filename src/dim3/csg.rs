@@ -1,7 +1,7 @@
-use dim3::{BspNode, Polygon, Triangle, Vector, Vertex, Plane};
+use dim3::{BspNode, Plane, Polygon, Triangle, Vector, Vertex};
 use Unit;
 
-#[derive(Clone)]
+#[derive(Clone, Default, Debug)]
 pub struct Csg {
     pub polygons: Vec<Polygon>,
 }
@@ -25,7 +25,7 @@ impl Csg {
         let mut new_csg = Csg::new();
 
         for poly in &self.polygons {
-            if poly.vertices.len() == 0 {
+            if poly.vertices.is_empty() {
                 continue;
             }
 
@@ -126,7 +126,7 @@ impl Csg {
             poly.plane = Plane::from_points(
                 poly.vertices[0].position,
                 poly.vertices[1].position,
-                poly.vertices[2].position
+                poly.vertices[2].position,
             )
         }
         self
@@ -147,7 +147,6 @@ impl Csg {
             } else {
                 vert.normal
             },
-            ..vert
         })
     }
 

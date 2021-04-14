@@ -13,7 +13,7 @@ bitflags! {
 
 type Collector = Vec<Line>;
 
-#[derive(Clone)]
+#[derive(Clone, Copy, Debug)]
 pub struct Plane(pub Point, pub Unit);
 
 impl Plane {
@@ -65,34 +65,34 @@ impl Plane {
             Location::FRONT => front.push(line),
             Location::BACK => back.push(line),
             Location::SPANNING => {
-                let mut f: Vec<Point> = Vec::new();
-                let mut b: Vec<Point> = Vec::new();
+                let mut inner_front: Vec<Point> = Vec::new();
+                let mut inner_back: Vec<Point> = Vec::new();
 
                 for (i, (p0, p1)) in [(line.p0, line.p1), (line.p1, line.p0)].iter().enumerate() {
                     let j = (i + 1) & 0b1;
                     if point_locs[i] != Location::BACK {
-                        f.push(line.p0);
+                        inner_front.push(line.p0);
                     }
 
                     if point_locs[i] != Location::FRONT {
-                        b.push(line.p0);
+                        inner_back.push(line.p0);
                     }
 
                     if (point_locs[i] | point_locs[j]) == Location::SPANNING {
                         let t = (self.1 - self.0.dot(*p0)) / self.0.dot(*p1 - *p0);
 
                         let v = p0.interpolate(p1, t);
-                        f.push(v);
-                        b.push(v);
+                        inner_front.push(v);
+                        inner_back.push(v);
                     }
                 }
 
-                if f.len() >= 2 {
-                    front.append(&mut LineStrip::from_points(f).build_lines());
+                if inner_front.len() >= 2 {
+                    front.append(&mut LineStrip::from_points(inner_front).build_lines());
                 }
 
-                if b.len() >= 2 {
-                    back.append(&mut LineStrip::from_points(b).build_lines());
+                if inner_back.len() >= 2 {
+                    back.append(&mut LineStrip::from_points(inner_back).build_lines());
                 }
             }
             _ => (),

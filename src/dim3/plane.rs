@@ -56,7 +56,7 @@ impl Plane {
                 }
             };
 
-            polygon_type = polygon_type | loc;
+            polygon_type |= loc;
             vertex_locs.push(loc);
         }
 
@@ -75,22 +75,22 @@ impl Plane {
                 back.push(poly.clone());
             }
             Location::FRONT_AND_BACK => {
-                let mut f: Vec<Vertex> = Vec::new();
-                let mut b: Vec<Vertex> = Vec::new();
+                let mut inner_front: Vec<Vertex> = Vec::new();
+                let mut inner_back: Vec<Vertex> = Vec::new();
 
                 for (i, v) in poly.vertices.iter().enumerate() {
                     let j = (i + 1) % vertices_num;
                     let ti = vertex_locs[i];
                     let tj = vertex_locs[j];
-                    let vi = v.clone();
+                    let vi = *v;
                     let vj = poly.vertices[j];
 
                     if ti != Location::BACK {
-                        f.push(vi);
+                        inner_front.push(vi);
                     }
 
                     if ti != Location::FRONT {
-                        b.push(vi);
+                        inner_back.push(vi);
                     }
 
                     if (ti | tj) == Location::FRONT_AND_BACK {
@@ -98,17 +98,17 @@ impl Plane {
                             / self.0.dot(vj.position - vi.position);
 
                         let v = vi.interpolate(vj, t);
-                        f.push(v);
-                        b.push(v);
+                        inner_front.push(v);
+                        inner_back.push(v);
                     }
                 }
 
-                if f.len() >= 3 {
-                    front.push(Polygon::new(f));
+                if inner_front.len() >= 3 {
+                    front.push(Polygon::new(inner_front));
                 }
 
-                if b.len() >= 3 {
-                    back.push(Polygon::new(b));
+                if inner_back.len() >= 3 {
+                    back.push(Polygon::new(inner_back));
                 }
             }
             _ => (),

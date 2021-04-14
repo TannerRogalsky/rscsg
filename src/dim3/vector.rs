@@ -43,7 +43,7 @@ impl Vector {
 
     /// Lerp. Linear interpolation from `self` to `other`
     pub fn lerp(&self, other: Vector, t: Unit) -> Self {
-        let me = self.clone();
+        let me = *self;
         me + (other - me) * t
     }
 
@@ -134,7 +134,7 @@ impl Div<Unit> for Vector {
     type Output = Self;
 
     fn div(self, rhs: Unit) -> Self {
-        let inv = (1 as Unit) / rhs;
+        let inv = 1. / rhs;
         Vector(self.0 * inv, self.1 * inv, self.2 * inv)
     }
 }

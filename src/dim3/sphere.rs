@@ -9,7 +9,7 @@ impl Csg {
             let d = Vector(theta.cos() * phi_sin, theta.sin() * phi_sin, phi.cos());
 
             Vertex::new(d * radius, d)
-        };
+        }
 
         let mut polys: Vec<Polygon> = Vec::new();
         let delta_theta = UNIT_PI * 2.0 / (slices as Unit);

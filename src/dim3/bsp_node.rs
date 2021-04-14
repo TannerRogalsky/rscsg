@@ -22,9 +22,8 @@ impl BspNode {
             polygons: Vec::new(),
         };
 
-        match polygons {
-            Some(polygons) => bsp.build(polygons),
-            _ => (),
+        if let Some(polygons) = polygons {
+            bsp.build(polygons);
         }
         bsp
     }
@@ -39,22 +38,23 @@ impl BspNode {
             *plane = plane.flip();
         }
 
-        if self.front.is_some() {
-            self.front.as_mut().unwrap().invert();
+        if let Some(front) = &mut self.front {
+            front.invert();
         }
 
-        if self.back.is_some() {
-            self.back.as_mut().unwrap().invert();
+        if let Some(back) = &mut self.back {
+            back.invert();
         }
 
         std::mem::swap(&mut self.front, &mut self.back);
     }
 
     /// Recursively remove all polygons in `polygons` that are inside this BSP tree.
-    pub fn clip_polygons(&self, polygons: &Vec<Polygon>) -> Vec<Polygon> {
-        if self.plane.is_none() {
-            return self.polygons.clone();
-        }
+    pub fn clip_polygons(&self, polygons: &[Polygon]) -> Vec<Polygon> {
+        let plane = match self.plane.as_ref() {
+            Some(plane) => plane,
+            None => return self.polygons.clone(),
+        };
 
         let mut front: Vec<Polygon> = Vec::new();
         let mut back: Vec<Polygon> = Vec::new();
@@ -62,7 +62,7 @@ impl BspNode {
         for poly in polygons {
             let mut second_front: Vec<Polygon> = Vec::new();
             let mut second_back: Vec<Polygon> = Vec::new();
-            self.plane.as_ref().unwrap().split_polygon(
+            plane.split_polygon(
                 &poly,
                 &mut front,
                 &mut back,
@@ -73,14 +73,14 @@ impl BspNode {
             back.append(&mut second_back);
         }
 
-        let mut front = if self.front.is_some() {
-            self.front.as_ref().unwrap().clip_polygons(&mut front)
+        let mut front = if let Some(own_front) = &self.front {
+            own_front.clip_polygons(&front)
         } else {
             front
         };
 
-        let mut back = if self.back.is_some() {
-            self.back.as_ref().unwrap().clip_polygons(&mut back)
+        let mut back = if let Some(own_back) = &self.back {
+            own_back.clip_polygons(&back)
         } else {
             Vec::new()
         };
@@ -92,12 +92,12 @@ impl BspNode {
     pub fn clip_to(&mut self, bsp: &BspNode) {
         self.polygons = bsp.clip_polygons(&self.polygons);
 
-        if self.front.is_some() {
-            self.front.as_mut().unwrap().clip_to(bsp);
+        if let Some(front) = &mut self.front {
+            front.clip_to(bsp);
         }
 
-        if self.back.is_some() {
-            self.back.as_mut().unwrap().clip_to(bsp);
+        if let Some(back) = &mut self.back {
+            back.clip_to(bsp);
         }
     }
 
@@ -110,12 +110,12 @@ impl BspNode {
     fn fill_polygons(&self, polys: &mut Vec<Polygon>) {
         polys.append(&mut self.polygons.clone());
 
-        if self.front.is_some() {
-            self.front.as_ref().unwrap().fill_polygons(polys);
+        if let Some(front) = &self.front {
+            front.fill_polygons(polys);
         }
 
-        if self.back.is_some() {
-            self.back.as_ref().unwrap().fill_polygons(polys);
+        if let Some(back) = &self.back {
+            back.fill_polygons(polys);
         }
     }
 
@@ -124,15 +124,11 @@ impl BspNode {
     /// polygons is partitioned using the first polygon (no heuristic is used to pick a good
     /// split).
     pub fn build(&mut self, polygons: Vec<Polygon>) {
-        if polygons.len() == 0 {
+        if polygons.is_empty() {
             return;
         }
 
-        if self.plane.is_none() {
-            self.plane = Some(polygons[0].plane.clone());
-        }
-
-        let plane = self.plane.clone().unwrap();
+        let plane = self.plane.get_or_insert_with(|| polygons[0].plane.clone());
 
         let mut front: Vec<Polygon> = Vec::new();
         let mut back: Vec<Polygon> = Vec::new();
@@ -153,19 +149,13 @@ impl BspNode {
         // Recursively build the BSP tree
 
         if !front.is_empty() {
-            if self.front.is_none() {
-                self.front = Some(Box::new(BspNode::new(None)));
-            }
-
-            self.front.as_mut().unwrap().build(front);
+            let this_front = self.front.get_or_insert(Box::new(BspNode::new(None)));
+            this_front.build(front);
         }
 
         if !back.is_empty() {
-            if self.back.is_none() {
-                self.back = Some(Box::new(BspNode::new(None)));
-            }
-
-            self.back.as_mut().unwrap().build(back);
+            let this_back = self.back.get_or_insert(Box::new(BspNode::new(None)));
+            this_back.build(back);
         }
     }
 }

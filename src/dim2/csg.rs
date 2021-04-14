@@ -1,7 +1,7 @@
 use dim2::{BspNode, Line, Point};
 use {Unit, UNIT_PI};
 
-#[derive(Clone)]
+#[derive(Clone, Default, Debug)]
 pub struct Csg {
     pub lines: Vec<Line>,
 }

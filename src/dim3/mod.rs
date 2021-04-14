@@ -1,6 +1,7 @@
 mod bsp_node;
 mod csg;
 mod cube;
+mod cylinder;
 mod plane;
 mod polygon;
 mod sphere;

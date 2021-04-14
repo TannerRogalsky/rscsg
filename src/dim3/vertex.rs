@@ -8,7 +8,7 @@ use Unit;
 /// functions like `CSG.sphere()` can return a smooth vertex normal, but `normal` is not used
 /// anywhere else.
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Vertex {
     pub position: Vector,
     pub normal: Vector,

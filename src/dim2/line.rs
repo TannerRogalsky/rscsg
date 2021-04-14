@@ -1,6 +1,6 @@
 use dim2::{Plane, Point};
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Copy)]
 pub struct Line {
     pub p0: Point,
     pub p1: Point,

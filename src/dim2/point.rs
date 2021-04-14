@@ -1,7 +1,7 @@
 use std::ops::{Add, Div, Mul, Neg, Sub};
 use Unit;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Point(pub Unit, pub Unit);
 
 impl Point {
@@ -61,7 +61,7 @@ impl Mul<Unit> for Point {
 impl Div<Unit> for Point {
     type Output = Point;
     fn div(self, rhs: Unit) -> Point {
-        let inv = (1 as Unit) / rhs;
+        let inv = 1. / rhs;
         Point(self.0 * inv, self.1 * inv)
     }
 }

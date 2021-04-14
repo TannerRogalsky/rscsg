@@ -8,7 +8,7 @@ use dim3::{Plane, Vertex};
 /// clones of each other or were split from the same polygon.  This can be used to define
 /// per-polygon properties (such as surface color).
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Polygon {
     //vertices: [Vertex; 3],
     pub vertices: Vec<Vertex>,

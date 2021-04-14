@@ -1,5 +1,6 @@
 use dim2::{Csg, Line, Point};
 
+#[derive(Debug, Default, Clone)]
 pub struct LineStrip {
     points: Vec<Point>,
     enclosed: bool,
