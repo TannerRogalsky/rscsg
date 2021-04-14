@@ -6,35 +6,40 @@ use rscsg::dim3::{Csg, Vector};
 use std::mem::size_of;
 
 const SHADER_VERT: &'static str = r#"
-#version 100
+#version 330 core
 precision mediump float;
 
-attribute vec3 at_loc;
-attribute vec4 at_color;
+layout (location = 0) in vec3 at_loc;
+layout (location = 1) in vec4 at_color;
+layout (location = 2) in vec3 at_normal;
 
 uniform mat4 un_mvp;
-varying vec4 va_color;
+
+out vec3 va_normal;
+out vec4 va_color;
 
 void main() {
     va_color = at_color;
+    va_normal = at_normal;
     gl_Position = un_mvp * vec4(at_loc, 1);
 }
 "#;
 
 const SHADER_FRAG: &'static str = r#"
-#version 100
+#version 330 core
 precision mediump float;
 
-varying vec4 va_color;
+in vec3 va_normal;
+in vec4 va_color;
 
 void main() {
     float delta = pow(length(va_color), 3.0);
-    gl_FragColor = vec4(delta, delta, delta, 1);
+    gl_FragColor = vec4(va_normal * delta, 1.);
 }
 "#;
 
 #[repr(C, packed)]
-struct Vertex(f32, f32, f32, u8, u8, u8, u8);
+struct Vertex(f32, f32, f32, u8, u8, u8, u8, f32, f32, f32);
 
 struct Scene {
     verts: draw::HwBuf<Vertex>,
@@ -148,9 +153,10 @@ fn make_scene(csg: Csg) -> Result<Scene, String> {
     let mut verts = draw::HwBuf::new(vertex_count, draw::Usage::Static)?;
     for triangle in triangles {
         let [p0, p1, p2] = triangle.positions;
-        verts.push(Vertex(p0.0, p0.1, p0.2, 1, 0, 0, 0));
-        verts.push(Vertex(p1.0, p1.1, p1.2, 0, 1, 0, 0));
-        verts.push(Vertex(p2.0, p2.1, p2.2, 0, 0, 1, 0));
+        let Vector(nx, ny, nz) = triangle.normal;
+        verts.push(Vertex(p0.0, p0.1, p0.2, 1, 0, 0, 0, nx, ny, nz));
+        verts.push(Vertex(p1.0, p1.1, p1.2, 0, 1, 0, 0, nx, ny, nz));
+        verts.push(Vertex(p2.0, p2.1, p2.2, 0, 0, 1, 0, nx, ny, nz));
     }
     verts.prepear_graphics();
     draw::print_gl_error()?;
@@ -159,6 +165,7 @@ fn make_scene(csg: Csg) -> Result<Scene, String> {
     let buf_id = pipeline.push_buffer(&verts, size_of::<Vertex>());
     pipeline.push_attribute(buf_id, 3, draw::DataType::F32, false);
     pipeline.push_attribute(buf_id, 4, draw::DataType::U8, false);
+    pipeline.push_attribute(buf_id, 3, draw::DataType::F32, false);
     draw::print_gl_error()?;
 
     Ok(Scene {
@@ -177,7 +184,11 @@ impl Application {
         draw::print_gl_error()?;
 
         // Make shader
-        let prog = draw::Program::from_static(SHADER_VERT, SHADER_FRAG, &["at_loc", "at_color"])?;
+        let prog = draw::Program::from_static(
+            SHADER_VERT,
+            SHADER_FRAG,
+            &["at_loc", "at_color", "at_normal"],
+        )?;
         draw::print_gl_error()?;
 
         let scene = make_scene(scene_cube(0))?;
