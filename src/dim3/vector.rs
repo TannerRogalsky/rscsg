@@ -18,6 +18,21 @@ pub struct Vector(pub Unit, pub Unit, pub Unit);
 pub struct IVector(pub i32, pub i32, pub i32);
 
 impl Vector {
+    #[inline]
+    pub fn x(&self) -> Unit {
+        self.0
+    }
+
+    #[inline]
+    pub fn y(&self) -> Unit {
+        self.1
+    }
+
+    #[inline]
+    pub fn z(&self) -> Unit {
+        self.2
+    }
+
     pub fn negate(&self) -> Self {
         Vector(-self.0, -self.1, -self.2)
     }
