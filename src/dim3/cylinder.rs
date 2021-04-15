@@ -1,5 +1,5 @@
 use dim3::{Csg, Polygon, Vector, Vertex};
-use Unit;
+use ::{Unit, UNIT_PI};
 
 impl Csg {
     pub fn cylinder(start: Vector, end: Vector, radius: Unit, slices: usize) -> Csg {
@@ -16,7 +16,7 @@ impl Csg {
         let end = Vertex::new(e, axis_z.normalize());
 
         let point = |stack: Unit, slice: Unit, normal_blend: Unit| -> Vertex {
-            let angle = slice * crate::PI * 2.;
+            let angle = slice * UNIT_PI * 2.;
             let out = (axis_x * angle.cos()) + (axis_y * angle.sin());
             let pos = s + (ray * stack) + (out * radius);
             let normal = out * (1. - normal_blend.abs()) + (axis_z * normal_blend);
