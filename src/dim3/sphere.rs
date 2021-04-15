@@ -4,7 +4,7 @@ use {Unit, UNIT_PI};
 
 impl Csg {
     pub fn sphere(center: Vector, radius: Unit, slices: usize, stacks: usize) -> Csg {
-        let mut vertex = |theta: Unit, phi: Unit| -> Vertex {
+        let vertex = |theta: Unit, phi: Unit| -> Vertex {
             let theta = theta * UNIT_PI * 2.;
             let phi = phi * UNIT_PI;
             let dir = Vector(theta.cos() * phi.sin(), phi.cos(), theta.sin() * phi.sin());
