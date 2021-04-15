@@ -1,5 +1,5 @@
 use dim3::{Csg, Polygon, Vector, Vertex};
-use ::{Unit, UNIT_PI};
+use {Unit, UNIT_PI};
 
 impl Csg {
     pub fn cylinder(start: Vector, end: Vector, radius: Unit, slices: usize) -> Csg {
