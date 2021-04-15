@@ -67,7 +67,7 @@ struct Application {
 }
 
 type SceneGenerator = fn(i32) -> Csg;
-const SCENES: [(&str, SceneGenerator); 6] = [
+const SCENES: [(&str, SceneGenerator); 8] = [
     ("Cube", scene_cube as SceneGenerator),
     ("Cubes", scene_cubes as SceneGenerator),
     ("Cubes subtract", scene_cubes_difference as SceneGenerator),
@@ -77,7 +77,20 @@ const SCENES: [(&str, SceneGenerator); 6] = [
         "Cylinder-Cube subtract",
         scene_cylinder_sub_cube as SceneGenerator,
     ),
+    ("Sphere", scene_sphere as SceneGenerator),
+    ("Sphere union", scene_sphere_union as SceneGenerator)
 ];
+
+fn scene_sphere(_step: i32) -> Csg {
+    Csg::sphere(Vector(0., 0., 0.), e1., 10, 10).inverse()
+}
+
+fn scene_sphere_union(_step: i32) -> Csg {
+    Csg::union(
+        &scene_sphere(0).translate(Vector(-0.25, 0., 0.)),
+        &scene_sphere(0).translate(Vector(0.25, 0., 0.))
+    )
+}
 
 fn scene_cube(_step: i32) -> Csg {
     Csg::cube(Vector(1., 1., 1.), true)
