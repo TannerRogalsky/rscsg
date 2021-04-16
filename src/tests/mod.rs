@@ -50,15 +50,52 @@ fn csg_total_subtraction() {
 
 #[test]
 fn csg_sphere() {
-    let sphere = Csg::sphere(1.0, 10, 5);
+    let sphere = Csg::sphere(Vector(0., 0., 0.), 1.0, 10, 5);
     let bb = BoundBox::from_csg(&sphere);
 
     let (d_min, d_max) = bb.get_min_max_discreet(10.);
 
     assert_eq!(-10, d_min.0);
     assert_eq!(-10, d_min.1);
-    assert_eq!(-10, d_min.2);
+    assert_eq!(-9, d_min.2);
     assert_eq!(10, d_max.0);
     assert_eq!(10, d_max.1);
-    assert_eq!(10, d_max.2);
+    assert_eq!(9, d_max.2);
+}
+
+#[test]
+fn stack_overflow_regression() {
+    fn scene_cube(_step: i32) -> Csg {
+        Csg::cube(Vector(1., 1., 1.), true)
+    }
+
+    fn scene_cylinder(step: i32) -> Csg {
+        let arm_length = 2.;
+        let radius = 0.5;
+        let rotate = 30. + (step * 4) as f32;
+        let slices = 8;
+        Csg::union(
+            &Csg::cylinder(
+                Vector(-arm_length, 0., 0.),
+                Vector(arm_length, 0., 0.),
+                radius,
+                slices,
+            ),
+            &Csg::cylinder(
+                Vector(0., -arm_length, 0.),
+                Vector(0., arm_length, 0.),
+                radius,
+                slices,
+            ),
+        )
+        .rotate(Vector(1., 0., 0.), rotate)
+    }
+
+    fn scene_cylinder_sub_cube(step: i32) -> Csg {
+        Csg::subtract(&scene_cube(0), &scene_cylinder(step))
+    }
+
+    println!("test");
+    let output = scene_cylinder_sub_cube(49);
+    assert!(!output.polygons.is_empty());
 }
