@@ -27,6 +27,16 @@ impl Plane {
         Plane(self.0.negate(), -self.1)
     }
 
+    #[inline]
+    pub fn normal(&self) -> Vector {
+        self.0
+    }
+
+    #[inline]
+    pub fn w(&self) -> Unit {
+        self.1
+    }
+
     /// Split `polygon` by this plane if needed, then put the polygon or polygon fragments in the
     /// appropriate lists. Coplanar polygons go into either `coplanarFront` or `coplanarBack`
     /// depending on their orientation with respect to this plane. Polygons in front or in back of
@@ -34,17 +44,16 @@ impl Plane {
     pub fn split_polygon(
         &self,
         poly: &Polygon,
-        coplane_front: &mut Collector,
-        coplane_back: &mut Collector,
+        coplanar_front: &mut Collector,
+        coplanar_back: &mut Collector,
         front: &mut Collector,
         back: &mut Collector,
     ) {
         let mut polygon_type = Location::NONE;
         let mut vertex_locs: Vec<Location> = Vec::with_capacity(poly.vertices.len());
-        let vertices_num = poly.vertices.len();
 
         for v in poly.vertices.iter() {
-            let t = self.0.dot(v.position) - self.1;
+            let t = self.normal().dot(v.position) - self.w();
 
             let loc = {
                 if t < -EPSILON {
@@ -62,10 +71,10 @@ impl Plane {
 
         match polygon_type {
             Location::COPLANAR => {
-                if self.0.dot(poly.plane.0) > (0 as Unit) {
-                    coplane_front.push(poly.clone());
+                if self.normal().dot(poly.plane.normal()) > 0. {
+                    coplanar_front.push(poly.clone());
                 } else {
-                    coplane_back.push(poly.clone());
+                    coplanar_back.push(poly.clone());
                 }
             }
             Location::FRONT => {
@@ -78,11 +87,11 @@ impl Plane {
                 let mut inner_front: Vec<Vertex> = Vec::new();
                 let mut inner_back: Vec<Vertex> = Vec::new();
 
-                for (i, v) in poly.vertices.iter().enumerate() {
-                    let j = (i + 1) % vertices_num;
+                for i in 0..poly.vertices.len() {
+                    let j = (i + 1) % poly.vertices.len();
                     let ti = vertex_locs[i];
                     let tj = vertex_locs[j];
-                    let vi = *v;
+                    let vi = poly.vertices[i];
                     let vj = poly.vertices[j];
 
                     if ti != Location::BACK {
@@ -94,8 +103,8 @@ impl Plane {
                     }
 
                     if (ti | tj) == Location::FRONT_AND_BACK {
-                        let t = (self.1 - self.0.dot(vi.position))
-                            / self.0.dot(vj.position - vi.position);
+                        let t = (self.w() - self.normal().dot(vi.position))
+                            / self.normal().dot(vj.position - vi.position);
 
                         let v = vi.interpolate(vj, t);
                         inner_front.push(v);
