@@ -64,24 +64,19 @@ impl Csg {
     }
 
     // Read triangles
-    pub fn iter_triangles<F>(&self, mut func: F)
-    where
-        F: FnMut(Triangle),
-    {
-        for poly in &self.polygons {
-            for i in 1..(poly.vertices.len() - 1) {
+    pub fn iter_triangles<F>(&self) -> impl Iterator<Item = Triangle> + '_ {
+        self.polygons.iter().flat_map(|poly| {
+            (1..poly.vertices.len() - 1).map(move |i| {
                 let v0 = poly.vertices[0].position;
                 let v1 = poly.vertices[i].position;
                 let v2 = poly.vertices[i + 1].position;
 
-                let tri = Triangle {
+                Triangle {
                     positions: [v0, v1, v2],
                     normal: poly.plane.0,
-                };
-
-                func(tri);
-            }
-        }
+                }
+            })
+        })
     }
 
     pub fn get_triangles(&self) -> Vec<Triangle> {
