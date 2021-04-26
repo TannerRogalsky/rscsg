@@ -64,7 +64,7 @@ impl Csg {
     }
 
     // Read triangles
-    pub fn iter_triangles<F>(&self) -> impl Iterator<Item = Triangle> + '_ {
+    pub fn iter_triangles(&self) -> impl Iterator<Item = Triangle> + '_ {
         self.polygons.iter().flat_map(|poly| {
             (1..poly.vertices.len() - 1).map(move |i| {
                 let v0 = poly.vertices[0].position;
